@@ -1,0 +1,71 @@
+import random
+
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+class Cab(User):
+    def __init__(self, id, location, username, password):
+        super().__init__(username, password)
+        self.id = id
+        self.location = location
+        self.available = True
+
+class Passenger(User):
+    def __init__(self, id, location, destination, username, password):
+        super().__init__(username, password)
+        self.id = id
+        self.location = location
+        self.destination = destination
+
+class Trip:
+    def __init__(self, passenger, cab):
+        self.passenger = passenger
+        self.cab = cab
+        self.distance = self.calculate_distance()
+
+    def calculate_distance(self):
+        # Placeholder for distance calculation
+        return random.randint(1, 10)
+
+class CabAllocationSystem:
+    def __init__(self):
+        self.cabs = [Cab(i, random.randint(1, 10), f"driver{i}", f"password{i}") for i in range(1, 6)]
+        self.passengers = [Passenger(i, random.randint(1, 10), random.randint(1, 10), f"passenger{i}", f"password{i}") for i in range(1, 6)]
+    
+    def authenticate(self, username, password):
+        for user in self.passengers + self.cabs:
+            if user.username == username and user.password == password:
+                return True
+        return False
+
+    def allocate_cab(self, username, password):
+        if not self.authenticate(username, password):
+            print("Authentication failed. Please check your username and password.")
+            return
+
+        available_cabs = [cab for cab in self.cabs if cab.available]
+        if not available_cabs or not self.passengers:
+            print("No available cabs or passengers")
+            return
+        
+        passenger = next((p for p in self.passengers if p.username == username), None)
+        if not passenger:
+            print("Passenger not found.")
+            return
+
+        cab = min(available_cabs, key=lambda x: abs(x.location - passenger.location))
+        cab.available = False
+        trip = Trip(passenger, cab)
+        print(f"Allocated Cab {cab.id} to Passenger {passenger.id} for trip of distance {trip.distance} units.")
+
+    def simulate(self, num_trips):
+        for _ in range(num_trips):
+            username = input("Enter your username: ")
+            password = input("Enter your password: ")
+            self.allocate_cab(username, password)
+
+if __name__ == "__main__":
+    cab_system = CabAllocationSystem()
+    cab_system.simulate(5)  # Simulate 5 trips
